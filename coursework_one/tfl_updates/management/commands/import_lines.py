@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from tfl_updates.models import Line
 from tfl_updates.services.tfl_client import tfl_get
 
-LINE_MODES = ["tube", "bus", "dlr", "overground", "tram"]  # add more if needed
+LINE_MODES = ["tube", "dlr", "overground", "elizabeth-line", "tram"]  # add more if needed
 
 class Command(BaseCommand):
     help = "Import all TfL lines into the database"

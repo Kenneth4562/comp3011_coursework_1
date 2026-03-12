@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from tfl_updates.models import Stop
 from tfl_updates.services.tfl_client import tfl_get
 
-STOP_MODES = ["tube", "bus", "dlr", "overground", "tram"]  # add more if needed
+STOP_MODES = ["tube", "dlr", "overground", "elizabeth-line", "tram"]   # add more if needed
 
 class Command(BaseCommand):
     help = "Import all TfL stops into the database"

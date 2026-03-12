@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_yasg',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -121,3 +122,9 @@ STATIC_URL = 'static/'
 
 TFL_APP_ID = os.environ.get("TFL_APP_ID")
 TFL_APP_KEY = os.environ.get("TFL_APP_KEY")
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ]
+}

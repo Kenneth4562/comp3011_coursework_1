@@ -41,7 +41,7 @@ class ArrivalRecord(models.Model):
     recorded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.line} at {self.stop} ({self.delay_seconds}s delay)"
+        return f"{self.line} at {self.stop}"
 
 class UserIncident(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

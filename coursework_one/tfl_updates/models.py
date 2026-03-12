@@ -34,14 +34,9 @@ class UserStation(models.Model):
 class ArrivalRecord(models.Model):
     stop = models.ForeignKey(Stop, on_delete=models.CASCADE)
     line = models.ForeignKey(Line, on_delete=models.CASCADE)
-
     direction = models.CharField(max_length=50, null=True, blank=True)
     destination_name = models.CharField(max_length=200, null=True, blank=True)
-
-    scheduled_time = models.DateTimeField()
     predicted_time = models.DateTimeField()
-    delay_seconds = models.IntegerField()
-
     time_to_station = models.IntegerField(null=True, blank=True)  # TfL gives this
     recorded_at = models.DateTimeField(auto_now_add=True)
 

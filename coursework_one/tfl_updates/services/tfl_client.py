@@ -15,3 +15,6 @@ def tfl_get(endpoint, params=None):
     response.raise_for_status()
     return response.json()
 
+def get_arrivals_for_stop(stop_id):
+    endpoint = f"StopPoint/{stop_id}/Arrivals"
+    return tfl_get(endpoint)

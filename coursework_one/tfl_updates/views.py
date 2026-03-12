@@ -159,12 +159,19 @@ class StopListView(generics.ListAPIView):
     serializer_class = StopSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["mode"]
-    swagger_tags = ['Stops']
+    @swagger_auto_schema(
+        operation_description="Retrieve all stops in the database. Supports filtering by mode (e.g. tube, elizabeth-line, dlr, overground, tram).",
+        tags=["Stops"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class LineListView(generics.ListAPIView):
-    """
-    Retrieve all lines in the database.
-    """
     queryset = Line.objects.all()
     serializer_class = LineSerializer
-    swagger_tags = ['Lines']
+    @swagger_auto_schema(
+        operation_description="Retrieve all lines in the database.",
+        tags=["Lines"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

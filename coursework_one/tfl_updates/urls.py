@@ -5,6 +5,12 @@ from .views import (
     UserIncidentListCreateView, UserIncidentDetailView,
     StopListView, LineListView
 )
+from .views_analytics import (
+    StopAverageWaitView,
+    LineHeadwayView,
+    LineStatusView
+)
+from .views import StopArrivalsView
 
 urlpatterns = [
     # User Routes
@@ -21,4 +27,10 @@ urlpatterns = [
     
     path("stops/", StopListView.as_view(), name="stop-list"),
     path("lines/", LineListView.as_view(), name="line-list"),
+    
+    path("analytics/stops/<str:stop_id>/average-wait/", StopAverageWaitView.as_view()),
+    path("analytics/lines/<str:line_id>/headway/", LineHeadwayView.as_view()),
+    path("analytics/lines/<str:line_id>/status/", LineStatusView.as_view()),
+
+    path("stops/<str:stop_id>/arrivals/", StopArrivalsView.as_view()),
 ]

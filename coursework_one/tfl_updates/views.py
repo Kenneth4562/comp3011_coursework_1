@@ -1,8 +1,9 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from rest_framework.response import Response
 from rest_framework import generics
-from .models import UserRoute, UserStation, UserIncident, Stop, Line
+from .models import ArrivalRecord, UserRoute, UserStation, UserIncident, Stop, Line
 from .serializers import (
+    ArrivalRecordSerializer,
     UserRouteSerializer,
     UserStationSerializer,
     UserIncidentSerializer,
@@ -11,8 +12,11 @@ from .serializers import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import APIView, swagger_auto_schema
 from drf_yasg import openapi
+from tfl_updates.services.tfl_client import get_arrivals_for_stop
+from tfl_updates.services.arrival_transformer import transform_arrival
+from tfl_updates.services.arrival_saver import save_arrival
 
 # Create your views here.
 """ def HandleRegisterRequest(request):
@@ -175,3 +179,38 @@ class LineListView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+    
+class StopArrivalsView(APIView):
+    refresh_param = openapi.Parameter(
+        'refresh',
+        openapi.IN_QUERY,
+        description="If true, fetch fresh arrival data from TfL before returning results",
+        type=openapi.TYPE_BOOLEAN
+    )
+    
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'refresh',
+                openapi.IN_QUERY,
+                description="If true, fetch fresh arrival data from TfL before returning results",
+                type=openapi.TYPE_BOOLEAN
+            )
+        ],
+        operation_description="Retrieve arrival predictions for a stop. Use ?refresh=true to fetch new data from TfL.",
+        tags=["Arrivals"]
+    )
+    
+    def get(self, request, stop_id):
+        refresh = request.GET.get("refresh") == "true"
+
+        if refresh:
+            arrivals = get_arrivals_for_stop(stop_id)
+            for item in arrivals:
+                data = transform_arrival(item)
+                save_arrival(data)
+
+        # return latest stored arrivals
+        records = ArrivalRecord.objects.filter(stop_id=stop_id)
+        serializer = ArrivalRecordSerializer(records, many=True)
+        return Response(serializer.data)

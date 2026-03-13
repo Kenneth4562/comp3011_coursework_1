@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import UserRoute, UserStation, UserIncident, Stop, Line
+from .models import UserRoute, UserStation, UserIncident, Stop, Line, ArrivalRecord
+
+class ArrivalRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ArrivalRecord
+        fields = "__all__"
 
 class UserRouteSerializer(serializers.ModelSerializer):
     class Meta:

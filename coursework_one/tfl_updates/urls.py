@@ -8,7 +8,8 @@ from .views import (
 from .views_analytics import (
     StopAverageWaitView,
     LineHeadwayView,
-    LineStatusView
+    LineIncidentStatusView,
+    StopIncidentStatusView
 )
 from .views import StopArrivalsView
 
@@ -30,7 +31,8 @@ urlpatterns = [
     
     path("analytics/stops/<str:stop_id>/average-wait/", StopAverageWaitView.as_view()),
     path("analytics/lines/<str:line_id>/headway/", LineHeadwayView.as_view()),
-    path("analytics/lines/<str:line_id>/status/", LineStatusView.as_view()),
+    path("analytics/lines/<str:line_id>/incident-status/", LineIncidentStatusView.as_view()),
+    path("analytics/stops/<str:stop_id>/incident-status/", StopIncidentStatusView.as_view()),
 
     path("stops/<str:stop_id>/arrivals/", StopArrivalsView.as_view()),
 ]

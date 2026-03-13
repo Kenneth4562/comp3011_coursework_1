@@ -1,8 +1,9 @@
 from .arrival_saver import save_arrival
 from .arrival_transformer import transform_arrival
 from .tfl_client import get_arrivals_for_stop
-from tfl_updates.models import ArrivalRecord
+from tfl_updates.models import ArrivalRecord, UserIncident
 from django.db.models import Avg
+from django.utils import timezone
 from datetime import timedelta
 
 def average_wait_for_stop(stop_id):
@@ -46,6 +47,71 @@ def average_headway_for_line(line_id):
 
     return sum(diffs) / len(diffs) if diffs else None
 
+def line_status_from_incidents(line_id):
+    now = timezone.now()
+    window = now - timedelta(minutes=30)
+
+    incidents = UserIncident.objects.filter(
+        line=line_id,
+        created_at__gte=window
+    )
+
+    if not incidents.exists():
+        return "Good service", 0
+
+    score = 0
+    for incident in incidents:
+        if incident.severity <= 2:
+            score += 1
+        elif incident.severity == 3:
+            score += 2
+        else:
+            score += 3
+
+    if score == 0:
+        status = "Good service"
+    elif score <= 3:
+        status = "Minor delays"
+    elif score <= 6:
+        status = "Moderate delays"
+    else:
+        status = "Severe delays"
+
+    return status, score
+
+def stop_status_from_incidents(stop_id):
+    now = timezone.now()
+    window = now - timedelta(minutes=30)
+
+    incidents = UserIncident.objects.filter(
+        stop=stop_id,
+        created_at__gte=window
+    )
+
+    if not incidents.exists():
+        return "No reported issues", 0
+
+    score = 0
+    for incident in incidents:
+        if incident.severity <= 2:
+            score += 1
+        elif incident.severity == 3:
+            score += 2
+        else:
+            score += 3
+
+    if score == 0:
+        status = "No reported issues"
+    elif score <= 3:
+        status = "Minor issues"
+    elif score <= 6:
+        status = "Moderate issues"
+    else:
+        status = "Major issues"
+
+    return status, score
+
+""" 
 def line_status(line_id):
     avg_wait = average_wait_for_stop  # reuse logic
 
@@ -64,3 +130,4 @@ def line_status(line_id):
         status = "Severe delays"
 
     return status, wait
+ """

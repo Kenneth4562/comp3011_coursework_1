@@ -6,7 +6,8 @@ from drf_yasg import openapi
 from .services.analytics import (
     average_wait_for_stop,
     average_headway_for_line,
-    line_status
+    line_status_from_incidents,
+    stop_status_from_incidents
 )
 
 from .serializers_analytics import (
@@ -65,7 +66,59 @@ line_status_example = {
     "average_wait_seconds": 420.0
 }
 
-class LineStatusView(APIView):
+class LineIncidentStatusView(APIView):
+    @swagger_auto_schema(
+        operation_summary="Line status based on user incidents",
+        operation_description="Computes the operational status of a line using recent user-reported incidents.",
+        tags=["Analytics - Lines"],
+        responses={
+            200: openapi.Response(
+                description="Incident-based line status",
+                examples={
+                    "application/json": {
+                        "line_id": "victoria",
+                        "status": "Moderate delays",
+                        "score": 5
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request, line_id):
+        status, score = line_status_from_incidents(line_id)
+        return Response({
+            "line_id": line_id,
+            "status": status,
+            "score": score
+        })
+
+class StopIncidentStatusView(APIView):
+    @swagger_auto_schema(
+        operation_summary="Stop status based on user incidents",
+        operation_description="Computes the operational status of a stop using recent user-reported incidents.",
+        tags=["Analytics - Stops"],
+        responses={
+            200: openapi.Response(
+                description="Incident-based stop status",
+                examples={
+                    "application/json": {
+                        "stop_id": "HUBZFD",
+                        "status": "Moderate issues",
+                        "score": 5
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request, stop_id):
+        status, score = stop_status_from_incidents(stop_id)
+        return Response({
+            "stop_id": stop_id,
+            "status": status,
+            "score": score
+        })
+
+""" class LineStatusView(APIView):
     @swagger_auto_schema(
         operation_summary="Determine the operational status of a line",
         operation_description="Determine the operational status of a line based on recent average wait times.",
@@ -85,3 +138,4 @@ class LineStatusView(APIView):
             "average_wait_seconds": wait
         }
         return Response(data)
+ """

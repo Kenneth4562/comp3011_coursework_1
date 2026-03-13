@@ -24,6 +24,9 @@ from tfl_updates.services.arrival_saver import save_arrival
 class UserRouteListCreateView(generics.ListCreateAPIView):
     queryset = UserRoute.objects.all()
     serializer_class = UserRouteSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
         operation_summary="Retrieve all user routes",
@@ -59,6 +62,9 @@ class UserRouteListCreateView(generics.ListCreateAPIView):
 class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserRoute.objects.all()
     serializer_class = UserRouteSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
         operation_summary="Retrieve a user route",
@@ -96,6 +102,9 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
 class UserStationListCreateView(generics.ListCreateAPIView):
     queryset = UserStation.objects.all()
     serializer_class = UserStationSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
         operation_summary="Retrieve all favourite stations",

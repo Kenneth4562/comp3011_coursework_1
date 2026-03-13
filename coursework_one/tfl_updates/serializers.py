@@ -7,16 +7,6 @@ class ArrivalRecordSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class UserRouteSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(
-        help_text="ID of the user creating the route",
-        min_value=1,
-        error_messages={
-            "required": "User ID is required.",
-            "invalid": "User ID must be an integer.",
-            "min_value": "User ID must be positive."
-        }
-    )
-
     from_stop = serializers.CharField(
         help_text="Origin stop ID",
         max_length=20,
@@ -46,18 +36,9 @@ class UserRouteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserRoute
-        fields = "__all__"
+        fields = ["from_stop", "to_stop", "line"]
 
 class UserStationSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(
-        help_text="ID of the user",
-        min_value=1,
-        error_messages={
-            "required": "User ID is required.",
-            "invalid": "User ID must be an integer."
-        }
-    )
-
     stop = serializers.CharField(
         help_text="Stop ID to mark as favourite",
         max_length=20,
@@ -69,18 +50,19 @@ class UserStationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserStation
-        fields = "__all__"
+        fields = ["stop"]
+        
+    def create(self, validated_data):
+        stop_id = validated_data.pop("stop")
+
+        try:
+            stop_obj = Stop.objects.get(stop_id=stop_id)
+        except Stop.DoesNotExist:
+            raise serializers.ValidationError({"stop": "Stop ID does not exist."})
+
+        return UserStation.objects.create(stop=stop_obj, **validated_data)
 
 class UserIncidentSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(
-        help_text="ID of the user reporting the incident",
-        min_value=1,
-        error_messages={
-            "required": "User ID is required.",
-            "invalid": "User ID must be an integer."
-        }
-    )
-
     stop = serializers.CharField(
         help_text="Stop ID where the incident occurred",
         max_length=20,
@@ -122,7 +104,7 @@ class UserIncidentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserIncident
-        fields = "__all__"
+        fields = ["stop", "line", "description", "severity"]
 
 class StopSerializer(serializers.ModelSerializer):
     class Meta:

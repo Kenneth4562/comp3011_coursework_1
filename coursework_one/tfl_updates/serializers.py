@@ -1,5 +1,11 @@
 from rest_framework import serializers
 from .models import UserRoute, UserStation, UserIncident, Stop, Line, ArrivalRecord
+from django.contrib.auth.models import User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username"]
 
 class ArrivalRecordSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,6 +13,8 @@ class ArrivalRecordSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class UserRouteSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+    
     from_stop = serializers.CharField(
         help_text="Origin stop ID",
         max_length=20,
@@ -36,9 +44,11 @@ class UserRouteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserRoute
-        fields = ["from_stop", "to_stop", "line"]
+        fields = ["id", "user", "from_stop", "to_stop", "line"]
+        read_only_fields = ["user"]
 
 class UserStationSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
     stop = serializers.CharField(
         help_text="Stop ID to mark as favourite",
         max_length=20,
@@ -50,7 +60,8 @@ class UserStationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserStation
-        fields = ["stop"]
+        fields = ["id", "user", "stop"]
+        read_only_fields = ["user"]
         
     def create(self, validated_data):
         stop_id = validated_data.pop("stop")
@@ -63,6 +74,8 @@ class UserStationSerializer(serializers.ModelSerializer):
         return UserStation.objects.create(stop=stop_obj, **validated_data)
 
 class UserIncidentSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+    
     stop = serializers.CharField(
         help_text="Stop ID where the incident occurred",
         max_length=20,
@@ -104,7 +117,8 @@ class UserIncidentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserIncident
-        fields = ["stop", "line", "description", "severity"]
+        fields = ["id", "user", "stop", "line", "description", "severity"]
+        read_only_fields = ["user"]
 
 class StopSerializer(serializers.ModelSerializer):
     class Meta:

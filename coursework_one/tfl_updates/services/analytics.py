@@ -1,11 +1,34 @@
+from .arrival_saver import save_arrival
+from .arrival_transformer import transform_arrival
+from .tfl_client import get_arrivals_for_stop
 from tfl_updates.models import ArrivalRecord
 from django.db.models import Avg
 from datetime import timedelta
 
 def average_wait_for_stop(stop_id):
-    avg_wait = ArrivalRecord.objects.filter(stop_id=stop_id).aggregate(
-        avg=Avg("time_to_station")
-    )["avg"]
+    arrivals = get_arrivals_for_stop(stop_id)
+    currArrivalsTransformed = []
+    for item in arrivals:
+        data = transform_arrival(item)
+        currArrivalsTransformed.append(data)
+        save_arrival(data)
+
+    shortestWait = []
+    stopLines = []
+    
+    for arrival in currArrivalsTransformed:
+        if arrival["line_id"] not in stopLines:
+            stopLines.append(arrival["line_id"])
+            shortestWait.append(arrival["time_to_station"])
+        else:
+            lineIndex = stopLines.index(arrival["line_id"])
+            if arrival["time_to_station"] < shortestWait[lineIndex]:
+                shortestWait[lineIndex] = arrival["time_to_station"]
+    
+    if not shortestWait:
+        avg_wait = 0
+    else:
+        avg_wait = sum(shortestWait) / len(shortestWait)
 
     return avg_wait or 0
 

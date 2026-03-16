@@ -46,6 +46,33 @@ class UserRouteSerializer(serializers.ModelSerializer):
         model = UserRoute
         fields = ["id", "user", "from_stop", "to_stop", "line"]
         read_only_fields = ["user"]
+    
+    def create(self, validated_data):
+        from_stop_id = validated_data.pop("from_stop")
+        to_stop_id = validated_data.pop("to_stop")
+        line_id = validated_data.pop("line")
+
+        try:
+            from_stop_obj = Stop.objects.get(stop_id=from_stop_id)
+        except Stop.DoesNotExist:
+            raise serializers.ValidationError({"from_stop": "Stop ID does not exist."})
+
+        try:
+            to_stop_obj = Stop.objects.get(stop_id=to_stop_id)
+        except Stop.DoesNotExist:
+            raise serializers.ValidationError({"to_stop": "Stop ID does not exist."})
+
+        try:
+            line_obj = Line.objects.get(line_id=line_id)
+        except Line.DoesNotExist:
+            raise serializers.ValidationError({"line": "Line ID does not exist."})
+
+        return UserRoute.objects.create(
+            from_stop=from_stop_obj,
+            to_stop=to_stop_obj,
+            line=line_obj,
+            **validated_data
+        )
 
 class UserStationSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
@@ -104,7 +131,7 @@ class UserIncidentSerializer(serializers.ModelSerializer):
     )
 
     severity = serializers.IntegerField(
-        help_text="Severity level (1–5)",
+        help_text="Severity level (1-5)",
         min_value=1,
         max_value=5,
         error_messages={
@@ -119,6 +146,26 @@ class UserIncidentSerializer(serializers.ModelSerializer):
         model = UserIncident
         fields = ["id", "user", "stop", "line", "description", "severity"]
         read_only_fields = ["user"]
+    
+    def create(self, validated_data):
+        stop_id = validated_data.pop("stop")
+        line_id = validated_data.pop("line")
+
+        try:
+            stop_obj = Stop.objects.get(stop_id=stop_id)
+        except Stop.DoesNotExist:
+            raise serializers.ValidationError({"stop": "Stop ID does not exist."})
+
+        try:
+            line_obj = Line.objects.get(line_id=line_id)
+        except Line.DoesNotExist:
+            raise serializers.ValidationError({"line": "Line ID does not exist."})
+
+        return UserIncident.objects.create(
+            stop=stop_obj,
+            line=line_obj,
+            **validated_data
+        )
 
 class StopSerializer(serializers.ModelSerializer):
     class Meta:

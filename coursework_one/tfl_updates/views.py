@@ -47,10 +47,10 @@ class UserRouteListCreateView(generics.ListCreateAPIView):
                 examples={
                     "application/json": {
                         "id": 12,
-                        "user": 1,
-                        "from_stop": "490008660N",
-                        "to_stop": "490008661S",
-                        "line": "victoria"
+                        "user": "John Doe",
+                        "from_stop": "Farringdon (HUBZFD)",
+                        "to_stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line"
                     }
                 }
             )
@@ -125,8 +125,8 @@ class UserStationListCreateView(generics.ListCreateAPIView):
                 examples={
                     "application/json": {
                         "id": 5,
-                        "user": 1,
-                        "stop": "HUBZFD"
+                        "user": "John Doe",
+                        "stop": "Farringdon (HUBZFD)"
                     }
                 }
             )
@@ -138,6 +138,9 @@ class UserStationListCreateView(generics.ListCreateAPIView):
 class UserStationDetailView(generics.RetrieveDestroyAPIView):
     queryset = UserStation.objects.all()
     serializer_class = UserStationSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
         operation_summary="Retrieve a specific favourite station",
@@ -159,6 +162,9 @@ class UserStationDetailView(generics.RetrieveDestroyAPIView):
 class UserIncidentListCreateView(generics.ListCreateAPIView):
     queryset = UserIncident.objects.all()
     serializer_class = UserIncidentSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
         operation_summary="Retrieve all user-reported incidents",
@@ -179,9 +185,9 @@ class UserIncidentListCreateView(generics.ListCreateAPIView):
                 examples={
                     "application/json": {
                         "id": 3,
-                        "user": 1,
-                        "stop": "HUBZFD",
-                        "line": "victoria",
+                        "user": "John Doe",
+                        "stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line",
                         "description": "Severe delays, platform overcrowded",
                         "severity": 4
                     }
@@ -196,6 +202,9 @@ class UserIncidentListCreateView(generics.ListCreateAPIView):
 class UserIncidentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserIncident.objects.all()
     serializer_class = UserIncidentSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
         operation_summary="Retrieve a specific incident",

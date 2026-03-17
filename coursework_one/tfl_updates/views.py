@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework import generics
+from rest_framework import generics, status
 from .models import ArrivalRecord, UserRoute, UserStation, UserIncident, Stop, Line
 from .serializers import (
     ArrivalRecordSerializer,
@@ -98,7 +98,7 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
 
-### USER STATIONS
+### USER STOPS
 class UserStationListCreateView(generics.ListCreateAPIView):
     queryset = UserStation.objects.all()
     serializer_class = UserStationSerializer
@@ -107,21 +107,21 @@ class UserStationListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
-        operation_summary="Retrieve all favourite stations",
-        operation_description="Retrieve all favourite stations for all users",
-        tags=["User Stations"]
+        operation_summary="Retrieve all favourite stops",
+        operation_description="Retrieve all favourite stops for all users",
+        tags=["User Stops"]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_summary="Add a favourite station",
+        operation_summary="Add a favourite stop",
         operation_description="Marks a stop as a favourite for a user.",
-        tags=["User Stations"],
+        tags=["User Stops"],
         request_body=UserStationSerializer,
         responses={
             201: openapi.Response(
-                description="Favourite station added",
+                description="Favourite stop added",
                 examples={
                     "application/json": {
                         "id": 5,
@@ -143,17 +143,17 @@ class UserStationDetailView(generics.RetrieveDestroyAPIView):
         serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
-        operation_summary="Retrieve a specific favourite station",
-        operation_description="Retrieve a specific favourite station for a user",
-        tags=["User Stations"]
+        operation_summary="Retrieve a specific favourite stop",
+        operation_description="Retrieve a specific favourite stop for a user",
+        tags=["User Stops"]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_summary="Delete a favourite station",
-        operation_description="Delete a specific favourite station for a user",
-        tags=["User Stations"]
+        operation_summary="Delete a favourite stop",
+        operation_description="Delete a specific favourite stop for a user",
+        tags=["User Stops"]
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
@@ -238,7 +238,31 @@ class UserIncidentDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
 
-### STOPS AND LINES
+### STOPS - Retrieving all stops based on mode
+stop_list_example = [
+    {
+        "stop_id": "HUBBDS",
+        "name": "Bond Street",
+        "mode": "elizabeth-line",
+        "lat": 51.513362,
+        "lon": -0.148795
+    },
+    {
+        "stop_id": "HUBCAW",
+        "name": "Canary Wharf",
+        "mode": "elizabeth-line",
+        "lat": 51.503734,
+        "lon": -0.019121
+    },
+    {
+        "stop_id": "HUBEAL",
+        "name": "Ealing Broadway",
+        "mode": "elizabeth-line",
+        "lat": 51.514993,
+        "lon": -0.302131
+    }
+]
+
 class StopListView(generics.ListAPIView):
     queryset = Stop.objects.all()
     serializer_class = StopSerializer
@@ -247,10 +271,76 @@ class StopListView(generics.ListAPIView):
     @swagger_auto_schema(
         operation_summary="Retrieve all stops in the database",
         operation_description="Retrieve all stops in the database. Supports filtering by mode (e.g. tube, elizabeth-line, dlr, overground, tram).",
-        tags=["Stops"]
+        tags=["Stops"],
+        responses={
+            200: openapi.Response(
+                description="List of stops as per filter. (Example filter: \"elizabeth-line\")",
+                examples={"application/json": stop_list_example}
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+# STOPS - Retrieving stop information with a given stop ID
+stop_detail_example = {
+    "stop_id": "HUBBDS",
+    "name": "Bond Street",
+    "mode": "elizabeth-line",
+    "lat": 51.513362,
+    "lon": -0.148795
+}
+
+class StopDetailView(APIView):
+    @swagger_auto_schema(
+        operation_summary="Retrieve a stop by ID",
+        operation_description=(
+            "Retrieve detailed information about a specific stop using its stop ID. "
+            "Returns name, mode, and coordinates. "
+            "Useful for validating stop IDs or displaying stop metadata."
+        ),
+        tags=["Stops"],
+        responses={
+            200: openapi.Response(
+                description="Stop found",
+                examples={"application/json": stop_detail_example}
+            ),
+            404: openapi.Response(
+                description="Stop not found",
+                examples={"application/json": {"error": "Stop ID not found"}}
+            )
+        }
+    )
+    def get(self, request, stop_id):
+        try:
+            stop = Stop.objects.get(stop_id=stop_id)
+        except Stop.DoesNotExist:
+            return Response(
+                {"error": "Stop ID not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = StopSerializer(stop)
+        return Response(serializer.data, status=200)
+
+# LINES - Retrieving all lines in the database
+line_list_example = [
+    {
+    "line_id": "bakerloo",
+    "name": "Bakerloo",
+    "mode": "tube"
+    },
+    {
+    "line_id": "central",
+    "name": "Central",
+    "mode": "tube"
+    },
+    {
+    "line_id": "circle",
+    "name": "Circle",
+    "mode": "tube"
+    }
+]
 
 class LineListView(generics.ListAPIView):
     queryset = Line.objects.all()
@@ -258,25 +348,47 @@ class LineListView(generics.ListAPIView):
     @swagger_auto_schema(
         operation_summary="Retrieve all lines in the database",
         operation_description="Retrieve all lines in the database.",
-        tags=["Lines"]
+        tags=["Lines"],
+        responses={
+            200: openapi.Response(
+                description="List of lines",
+                examples={"application/json": line_list_example}
+            )
+        }
     )
+
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
+# Arrivals
 arrivals_example = [
-    {
-        "stop": "HUBZFD",
-        "line": "victoria",
-        "predicted_time": "2026-03-13T10:05:00Z",
-        "time_to_station": 120
-    }
+  {
+    "id": 2627,
+    "direction": "outbound",
+    "destination_name": "Hainault Underground Station",
+    "predicted_time": "2026-03-12T18:11:37Z",
+    "time_to_station": 1611,
+    "recorded_at": "2026-03-12T17:44:54.319715Z",
+    "stop": "940GZZLUNBP",
+    "line": "central"
+  },
+  {
+    "id": 2628,
+    "direction": "outbound",
+    "destination_name": "Hainault Underground Station",
+    "predicted_time": "2026-03-12T17:45:38Z",
+    "time_to_station": 52,
+    "recorded_at": "2026-03-12T17:44:54.323132Z",
+    "stop": "940GZZLUNBP",
+    "line": "central"
+  },
+  {"...": "..."}
 ]
 
 class StopArrivalsView(APIView):
-
     @swagger_auto_schema(
         operation_summary="Retrieve arrival predictions for a stop",
-        operation_description="Retrieve arrival predictions for a stop. Use ?refresh=true to fetch fresh data from TfL.",
+        operation_description="Retrieves all previously saved arrival predictions for a stop. Use refresh = true to fetch and additionally return fresh data from TfL.",
         tags=["Arrivals"],
         manual_parameters=[
             openapi.Parameter(
@@ -290,12 +402,23 @@ class StopArrivalsView(APIView):
             200: openapi.Response(
                 description="List of arrival predictions",
                 examples={"application/json": arrivals_example}
+            ),
+            400: openapi.Response(
+                description="Error: Bad Request - Invalid Stop ID",
+                examples={"application/json": {"error": "Invalid Stop ID"}}
             )
         }
     )
     def get(self, request, stop_id):
         refresh_param = request.GET.get("refresh", "").lower()
         refresh = refresh_param in ["true", "1", "yes"]
+        
+        # Validate stop exists
+        if not Stop.objects.filter(stop_id=stop_id).exists():
+            return Response(
+                {"error": "Invalid stop ID"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if refresh:
             arrivals = get_arrivals_for_stop(stop_id)

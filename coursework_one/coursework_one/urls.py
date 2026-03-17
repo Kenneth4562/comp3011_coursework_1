@@ -25,7 +25,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="TfL Analytics API",
         default_version='v1',
-        description="API for user routes, favourite stations, incidents, and TfL analytics",
+        description="API for user routes, favourite stopss, incidents, and TfL analytics. Completed as a coursework requirement for COMP3011 Web Services and Web Data.",
     ),
     public=True,
     permission_classes=[permissions.AllowAny],

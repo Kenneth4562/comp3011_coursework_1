@@ -1,9 +1,9 @@
 from django.urls import path
 from .views import (
-    UserRouteListCreateView, UserRouteDetailView,
+    StopDetailView, UserRouteListCreateView, UserRouteDetailView,
     UserStationListCreateView, UserStationDetailView,
     UserIncidentListCreateView, UserIncidentDetailView,
-    StopListView, LineListView
+    StopListView, LineListView, StopArrivalsView
 )
 from .views_analytics import (
     StopAverageWaitView,
@@ -11,7 +11,6 @@ from .views_analytics import (
     LineIncidentStatusView,
     StopIncidentStatusView
 )
-from .views import StopArrivalsView
 
 urlpatterns = [
     # User Routes
@@ -35,4 +34,5 @@ urlpatterns = [
     path("analytics/stops/<str:stop_id>/incident-status/", StopIncidentStatusView.as_view()),
 
     path("stops/<str:stop_id>/arrivals/", StopArrivalsView.as_view()),
+    path("stops/<str:stop_id>/", StopDetailView.as_view(), name="stop-detail"),
 ]

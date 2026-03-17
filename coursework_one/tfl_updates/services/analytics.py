@@ -8,6 +8,14 @@ from datetime import timedelta
 
 def average_wait_for_stop(stop_id):
     arrivals = get_arrivals_for_stop(stop_id)
+    
+    # Error Handling: If arrivals is None, it means the stop ID was invalid. If it's an empty list, it means there are no arrival data for that stop.
+    if arrivals is None:
+        return {"error": "Invalid stop ID"}, None
+
+    if not arrivals:
+        return {"error": "No arrival data available"}, 0
+    
     currArrivalsTransformed = []
     for item in arrivals:
         data = transform_arrival(item)
@@ -31,7 +39,7 @@ def average_wait_for_stop(stop_id):
     else:
         avg_wait = sum(shortestWait) / len(shortestWait)
 
-    return avg_wait or 0
+    return None, avg_wait
 
 def average_headway_for_line(line_id):
     records = ArrivalRecord.objects.filter(line_id=line_id).order_by("predicted_time")
@@ -110,24 +118,3 @@ def stop_status_from_incidents(stop_id):
         status = "Major issues"
 
     return status, score
-
-""" 
-def line_status(line_id):
-    avg_wait = average_wait_for_stop  # reuse logic
-
-    wait = ArrivalRecord.objects.filter(line_id=line_id).aggregate(
-        avg=Avg("time_to_station")
-    )["avg"]
-
-    if wait is None:
-        return "No data"
-
-    if wait < 180:
-        status = "Good service"
-    elif wait < 600:
-        status = "Minor delays"
-    else:
-        status = "Severe delays"
-
-    return status, wait
- """

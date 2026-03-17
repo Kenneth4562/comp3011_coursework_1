@@ -32,15 +32,25 @@ class StopAverageWaitView(APIView):
                 description="Average wait time for the stop",
                 examples={"application/json": average_wait_example}
             ),
-            404: "Stop not found or has no arrival data"
+            400: openapi.Response(
+                description="Invalid stop ID",
+                examples={"application/json": {"error": "Invalid stop ID"}}
+            ),
+            404: openapi.Response(
+                description="Stop has no arrival data",
+                examples={"application/json": {"detail": "Stop 'HUBZMG' not found or has no arrival data."}}
+            ),
         }
     )
     def get(self, request, stop_id):
-        avg = average_wait_for_stop(stop_id)
+        error, avg = average_wait_for_stop(stop_id)
         
-        # If avg is zero, treat as invalid stop
+        # If avg is zero, treat as stop with no arrival data
         if avg == 0:
             raise NotFound(detail=f"Stop '{stop_id}' not found or has no arrival data.")
+        
+        if error:
+            return Response(error, status=400)
         
         data = {"stop_id": stop_id, "average_wait_seconds": avg}
         return Response(AverageWaitSerializer(data).data)
@@ -57,13 +67,21 @@ class LineHeadwayView(APIView):
         tags=["Analytics - Lines"],
         responses={
             200: openapi.Response(
-                description="Average headway for the line",
+                description="Successfully computed average headway for the line",
                 examples={"application/json": line_headway_example}
-            )
+            ),
+            404: openapi.Response(
+                description="Line not found or has insufficient arrival data",
+                examples={"application/json": {"detail": "Line 'southern' not found or has insufficient arrival data."}}
+            )  
         }
     )
     def get(self, request, line_id):
         headway = average_headway_for_line(line_id)
+        
+        if headway is None:
+            raise NotFound(detail=f"Line '{line_id}' not found or has insufficient arrival data.")
+        
         data = {"line_id": line_id, "average_headway_seconds": headway}
         return Response(data)
 
@@ -76,7 +94,7 @@ line_status_example = {
 class LineIncidentStatusView(APIView):
     @swagger_auto_schema(
         operation_summary="Line status based on user incidents",
-        operation_description="Computes the operational status of a line using recent user-reported incidents.",
+        operation_description="Computes the operational status of a line using recent user-reported incidents. The status is categorized based on the severity and number of incidents reported in the last 30 minutes.",
         tags=["Analytics - Lines"],
         responses={
             200: openapi.Response(
@@ -102,7 +120,7 @@ class LineIncidentStatusView(APIView):
 class StopIncidentStatusView(APIView):
     @swagger_auto_schema(
         operation_summary="Stop status based on user incidents",
-        operation_description="Computes the operational status of a stop using recent user-reported incidents.",
+        operation_description="Computes the operational status of a stop using recent user-reported incidents. The status is categorized based on the severity and number of incidents reported in the last 30 minutes.",
         tags=["Analytics - Stops"],
         responses={
             200: openapi.Response(

@@ -12,9 +12,18 @@ def tfl_get(endpoint, params=None):
 
     url = f"{BASE_URL}/{endpoint}"
     response = requests.get(url, params=params)
+    
+    if response.status_code == 404:
+        return None # Return None for not found, allowing caller to handle it gracefully
+    
     response.raise_for_status()
     return response.json()
 
 def get_arrivals_for_stop(stop_id):
     endpoint = f"StopPoint/{stop_id}/Arrivals"
-    return tfl_get(endpoint)
+    data = tfl_get(endpoint)
+
+    if data is None:
+        return None  # invalid stop ID
+
+    return data

@@ -1,8 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from .models import Line, Stop
 
 from .services.analytics import (
     average_wait_for_stop,
@@ -106,14 +108,25 @@ class LineIncidentStatusView(APIView):
                         "score": 5
                     }
                 }
+            ),
+            400: openapi.Response(
+                description="Error: Bad Request - Invalid Line ID",
+                examples={"application/json": {"error": "Invalid Line ID"}}
             )
         }
     )
     def get(self, request, line_id):
-        status, score = line_status_from_incidents(line_id)
+        # Validate line exists
+        if not Line.objects.filter(line_id=line_id).exists():
+            return Response(
+                {"error": "Invalid line ID"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        status_text, score = line_status_from_incidents(line_id)
         return Response({
             "line_id": line_id,
-            "status": status,
+            "status": status_text,
             "score": score
         })
 
@@ -132,13 +145,24 @@ class StopIncidentStatusView(APIView):
                         "score": 5
                     }
                 }
+            ),
+            400: openapi.Response(
+                description="Error: Bad Request - Invalid Stop ID",
+                examples={"application/json": {"error": "Invalid Stop ID"}}
             )
         }
     )
     def get(self, request, stop_id):
-        status, score = stop_status_from_incidents(stop_id)
+        # Validate stop exists
+        if not Stop.objects.filter(stop_id=stop_id).exists():
+            return Response(
+                {"error": "Invalid stop ID"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        status_text, score = stop_status_from_incidents(stop_id)
         return Response({
             "stop_id": stop_id,
-            "status": status,
+            "status": status_text,
             "score": score
         })

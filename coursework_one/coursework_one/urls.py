@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views 
 from django.urls import path, include
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -31,9 +32,10 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # Admin site
     path('admin/', admin.site.urls),
 
-    # Your API routes
+    # API routes
     path('api/', include('tfl_updates.urls')),
 
     # Swagger UI
@@ -41,5 +43,8 @@ urlpatterns = [
 
     # ReDoc (optional)
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='redoc-ui'),
+    
+    # Authentication routes
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 

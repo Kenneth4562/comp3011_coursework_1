@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -17,7 +18,7 @@ from .serializers_analytics import (
 )
 
 average_wait_example = {
-    "stop_id": "HUBZFD",
+    "stop_id": "940GZZLUBST",
     "average_wait_seconds": 142.5
 }
 
@@ -30,11 +31,17 @@ class StopAverageWaitView(APIView):
             200: openapi.Response(
                 description="Average wait time for the stop",
                 examples={"application/json": average_wait_example}
-            )
+            ),
+            404: "Stop not found or has no arrival data"
         }
     )
     def get(self, request, stop_id):
         avg = average_wait_for_stop(stop_id)
+        
+        # If avg is zero, treat as invalid stop
+        if avg == 0:
+            raise NotFound(detail=f"Stop '{stop_id}' not found or has no arrival data.")
+        
         data = {"stop_id": stop_id, "average_wait_seconds": avg}
         return Response(AverageWaitSerializer(data).data)
 
@@ -102,7 +109,7 @@ class StopIncidentStatusView(APIView):
                 description="Incident-based stop status",
                 examples={
                     "application/json": {
-                        "stop_id": "HUBZFD",
+                        "stop_id": "940GZZLUBST",
                         "status": "Moderate issues",
                         "score": 5
                     }
@@ -117,25 +124,3 @@ class StopIncidentStatusView(APIView):
             "status": status,
             "score": score
         })
-
-""" class LineStatusView(APIView):
-    @swagger_auto_schema(
-        operation_summary="Determine the operational status of a line",
-        operation_description="Determine the operational status of a line based on recent average wait times.",
-        tags=["Analytics - Lines"],
-        responses={
-            200: openapi.Response(
-                description="Status of the line",
-                examples={"application/json": line_status_example}
-            )
-        }
-    )
-    def get(self, request, line_id):
-        status, wait = line_status(line_id)
-        data = {
-            "line_id": line_id,
-            "status": status,
-            "average_wait_seconds": wait
-        }
-        return Response(data)
- """

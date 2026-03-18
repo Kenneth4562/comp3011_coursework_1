@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 class Stop(models.Model):
     stop_id = models.CharField(max_length=50, primary_key=True)  # NaPTAN ID
     name = models.CharField(max_length=200)
-    mode = models.CharField(max_length=50)  # bus, tube, tram
+    mode = models.CharField(max_length=50)  # dlr, tube, tram
     lat = models.FloatField(null=True, blank=True)
     lon = models.FloatField(null=True, blank=True)
 
@@ -14,7 +14,7 @@ class Stop(models.Model):
 class Line(models.Model):
     line_id = models.CharField(max_length=50, primary_key=True)
     name = models.CharField(max_length=100)
-    mode = models.CharField(max_length=50)  # bus, tube, tram
+    mode = models.CharField(max_length=50)  # dlr, tube, tram
 
     def __str__(self):
         return self.name

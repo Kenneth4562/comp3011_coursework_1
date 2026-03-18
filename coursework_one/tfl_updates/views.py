@@ -31,7 +31,30 @@ class UserRouteListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_summary="Retrieve all user routes",
         operation_description="Retrieve all user-added/favourite routes.",
-        tags=["User Routes"]
+        tags=["User Routes"],
+        responses={
+            200: openapi.Response(
+                description="List of user routes",
+                examples={
+                    "application/json": [
+                        {
+                            "id": 1,
+                            "user": "John Doe",
+                            "from_stop": "Farringdon (HUBZFD)",
+                            "to_stop": "Whitechapel (HUBZWL)",
+                            "line": "Elizabeth line"
+                        },
+                        {
+                            "id": 2,
+                            "user": "Jane Smith",
+                            "from_stop": "Ealing Broadway (HUBEAL)",
+                            "to_stop": "Liverpool Street (HUBZLST)",
+                            "line": "Central line"
+                        }
+                    ]
+                }
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -53,6 +76,14 @@ class UserRouteListCreateView(generics.ListCreateAPIView):
                         "line": "Elizabeth line"
                     }
                 }
+            ), 
+            400: openapi.Response(
+                description="Invalid input data",
+                examples={
+                    "application/json": {
+                        "from_stop": "Stop ID does not exist."
+                    }
+                }
             )
         }
     )
@@ -68,8 +99,26 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_summary="Retrieve a user route",
-        operation_description="Retrieve a specific user route",
-        tags=["User Routes"]
+        operation_description="Retrieve a specific user route by its ID.",
+        tags=["User Routes"],
+        responses={
+            200: openapi.Response(
+                description="User route details",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "from_stop": "Farringdon (HUBZFD)",
+                        "to_stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line"
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Route not found",
+                examples={"application/json": {"error": "User route not found"}}
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -77,7 +126,34 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Update a user route",
         operation_description="Update a specific user route",
-        tags=["User Routes"]
+        tags=["User Routes"],
+        request_body=UserRouteSerializer,
+        responses={
+            200: openapi.Response(
+                description="Route updated successfully",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "from_stop": "Farringdon (HUBZFD)",
+                        "to_stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line"
+                    }
+                }
+            ), 
+            400: openapi.Response(
+                description="Invalid input data",
+                examples={
+                    "application/json": {
+                        "from_stop": "Stop ID does not exist."
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Route not found",
+                examples={"application/json": {"detail": "No UserRoute matches the given query."}}
+            )
+        }
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
@@ -85,7 +161,34 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Partially update a user route",
         operation_description="Partially update a specific user route",
-        tags=["User Routes"]
+        tags=["User Routes"],
+        request_body=UserRouteSerializer,
+        responses={
+            200: openapi.Response(
+                description="Route partially updated successfully",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "from_stop": "Farringdon (HUBZFD)",
+                        "to_stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line"
+                    }
+                }
+            ), 
+            400: openapi.Response(
+                description="Invalid input data",
+                examples={
+                    "application/json": {
+                        "from_stop": "Stop ID does not exist."
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Route not found",
+                examples={"application/json": {"detail": "No UserRoute matches the given query."}}
+            )
+        }
     )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
@@ -93,7 +196,17 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Delete a user route",
         operation_description="Delete a specific user route",
-        tags=["User Routes"]
+        tags=["User Routes"],
+        responses={
+            204: openapi.Response(
+                description="Route deleted successfully",
+                examples=None
+            ),
+            404: openapi.Response(
+                description="Route not found",
+                examples={"application/json": {"detail": "No UserRoute matches the given query."}}
+            )
+        }
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)

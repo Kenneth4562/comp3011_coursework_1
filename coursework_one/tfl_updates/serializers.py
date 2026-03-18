@@ -154,31 +154,44 @@ class UserIncidentSerializer(serializers.ModelSerializer):
             "max_value": "Severity cannot exceed 5."
         }
     )
-
-    class Meta:
-        model = UserIncident
-        fields = ["id", "user", "stop", "line", "description", "severity"]
-        read_only_fields = ["user"]
     
-    def create(self, validated_data):
-        stop_id = validated_data.pop("stop")
-        line_id = validated_data.pop("line")
-
+    # Helper methods to convert IDs → objects for create/update operations
+    def _get_stop(self, stop_id, field_name):
         try:
-            stop_obj = Stop.objects.get(stop_id=stop_id)
+            return Stop.objects.get(stop_id=stop_id)
         except Stop.DoesNotExist:
-            raise serializers.ValidationError({"stop": "Stop ID does not exist."})
+            raise serializers.ValidationError({field_name: "Stop ID does not exist."})
 
+    def _get_line(self, line_id):
         try:
-            line_obj = Line.objects.get(line_id=line_id)
+            return Line.objects.get(line_id=line_id)
         except Line.DoesNotExist:
             raise serializers.ValidationError({"line": "Line ID does not exist."})
 
-        return UserIncident.objects.create(
-            stop=stop_obj,
-            line=line_obj,
-            **validated_data
-        )
+    class Meta:
+        model = UserIncident
+        fields = ["id", "user", "stop", "line", "description", "severity", "created_at"]
+        read_only_fields = ["user", "created_at"]
+    
+    def create(self, validated_data):
+        # Convert IDs → objects
+        if "stop" in validated_data:
+            validated_data["stop"] = self._get_stop(validated_data["stop"], "stop")
+
+        if "line" in validated_data:
+            validated_data["line"] = self._get_line(validated_data["line"])
+
+        return UserIncident.objects.create(**validated_data)
+        
+    def update(self, instance, validated_data):
+        # Convert IDs → objects
+        if "stop" in validated_data:
+            validated_data["stop"] = self._get_stop(validated_data["stop"], "stop")
+
+        if "line" in validated_data:
+            validated_data["line"] = self._get_line(validated_data["line"])
+            
+        return super().update(instance, validated_data)
 
 class StopSerializer(serializers.ModelSerializer):
     class Meta:

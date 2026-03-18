@@ -160,7 +160,7 @@ class UserRouteDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_summary="Partially update a user route",
-        operation_description="Partially update a specific user route",
+        operation_description="Partially update a specific user route. Only the updated fields need to be provided in the request body.",
         tags=["User Routes"],
         request_body=UserRouteSerializer,
         responses={
@@ -222,7 +222,26 @@ class UserStationListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_summary="Retrieve all favourite stops",
         operation_description="Retrieve all favourite stops for all users",
-        tags=["User Stops"]
+        tags=["User Stops"],
+        responses={
+            200: openapi.Response(
+                description="List of user favourite stops. Returns empty list if no favourite stops added.",
+                examples={
+                    "application/json": [
+                        {
+                            "id": 1,
+                            "user": "John Doe",
+                            "stop": "Farringdon (HUBZFD)"
+                        },
+                        {
+                            "id": 2,
+                            "user": "Jane Smith",
+                            "stop": "Whitechapel (HUBZWL)"
+                        }
+                    ]
+                }
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -258,7 +277,23 @@ class UserStationDetailView(generics.RetrieveDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Retrieve a specific favourite stop",
         operation_description="Retrieve a specific favourite stop for a user",
-        tags=["User Stops"]
+        tags=["User Stops"],
+        responses={
+            200: openapi.Response(
+                description="Favourite stop details",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "stop": "Farringdon (HUBZFD)"
+                    }
+                }
+            ), 
+            404: openapi.Response(
+                description="Favourite stop not found",
+                examples={"application/json": {"detail": "No UserStation matches the given query."}}
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -266,7 +301,16 @@ class UserStationDetailView(generics.RetrieveDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Delete a favourite stop",
         operation_description="Delete a specific favourite stop for a user",
-        tags=["User Stops"]
+        tags=["User Stops"],
+        responses={
+            204: openapi.Response(
+                description="Favourite stop deleted successfully",
+            ), 
+            404: openapi.Response(
+                description="Favourite stop not found",
+                examples={"application/json": {"detail": "No UserStation matches the given query."}}
+            )
+        }
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
@@ -281,8 +325,35 @@ class UserIncidentListCreateView(generics.ListCreateAPIView):
 
     @swagger_auto_schema(
         operation_summary="Retrieve all user-reported incidents",
-        operation_description="Retrieve all user-reported incidents",
-        tags=["User Incidents"]
+        operation_description="Retrieves all user-reported incidents.",
+        tags=["User Incidents"],
+        responses={
+            200: openapi.Response(
+                description="List of user incidents. Returns empty list if no issues reported.",
+                examples={
+                    "application/json": [
+                        {
+                            "id": 1,
+                            "user": "John Doe",
+                            "stop": "Whitechapel (HUBZWL)",
+                            "line": "Elizabeth line",
+                            "description": "Severe delays, platform overcrowded",
+                            "severity": 4,
+                            "created_at": "2026-03-12T17:30:00Z"
+                        },
+                        {
+                            "id": 2,
+                            "user": "Jane Smith",
+                            "stop": "Liverpool Street (HUBZLST)",
+                            "line": "Central line",
+                            "description": "Minor delays, train at full capacity",
+                            "severity": 2,
+                            "created_at": "2026-03-12T16:45:00Z"
+                        }
+                    ]
+                }
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -305,6 +376,10 @@ class UserIncidentListCreateView(generics.ListCreateAPIView):
                         "severity": 4
                     }
                 }
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                examples={"application/json": {"line": "Line ID does not exist."}}
             )
         }
     )
@@ -321,32 +396,111 @@ class UserIncidentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_summary="Retrieve a specific incident",
-        operation_description="Retrieve a specific incident",
-        tags=["User Incidents"]
+        operation_description="Retrieve a specific incident from a given Incident ID. Example: ID = 1",
+        tags=["User Incidents"],
+        responses={
+            200: openapi.Response(
+                description="Incident details",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line",
+                        "description": "Severe delays, platform overcrowded",
+                        "severity": 4,
+                        "created_at": "2026-03-12T17:30:00Z"
+                    }
+                }
+            ), 
+            404: openapi.Response(
+                description="Incident not found",
+                examples={"application/json": {"detail": "No UserIncident matches the given query."}}
+            )
+        }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_summary="Update a specific incident",
-        operation_description="Update a specific incident",
-        tags=["User Incidents"]
+        operation_description="Update a specific incident using a given Incident ID",
+        tags=["User Incidents"],
+        responses={
+            200: openapi.Response(
+                description="Incident details after update.",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line",
+                        "description": "Severe delays, platform overcrowded",
+                        "severity": 4,
+                        "created_at": "2026-03-12T17:30:00Z"
+                    }
+                }
+            ), 
+            400: openapi.Response(
+                description="Error: Bad Request (Invalid input data - full request body required)",
+                examples={
+                    "application/json": {
+                        "stop": [
+                            "Stop ID is required."
+                        ]
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Incident not found",
+                examples={"application/json": {"detail": "No UserIncident matches the given query."}}
+            )
+        }
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_summary="Partially update a specific incident",
-        operation_description="Partially update a specific incident",
-        tags=["User Incidents"]
+        operation_description="Partially update a specific incident using a given Incident ID. Only the updated fields need to be provided in the request body.",
+        tags=["User Incidents"],
+        responses={
+            200: openapi.Response(
+                description="Incident details after partial update.",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "user": "John Doe",
+                        "stop": "Whitechapel (HUBZWL)",
+                        "line": "Elizabeth line",
+                        "description": "Severe delays, platform overcrowded",
+                        "severity": 4,
+                        "created_at": "2026-03-12T17:30:00Z"
+                    }
+                }
+            ), 
+            404: openapi.Response(
+                description="Incident not found",
+                examples={"application/json": {"detail": "No UserIncident matches the given query."}}
+            )
+        }
     )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_summary="Delete a specific incident",
-        operation_description="Delete a specific incident",
-        tags=["User Incidents"]
+        operation_description="Delete a specific incident via a given Incident ID",
+        tags=["User Incidents"],
+        responses={
+            204: openapi.Response(
+                description="Incident deleted successfully",
+            ), 
+            404: openapi.Response(
+                description="Incident not found",
+                examples={"application/json": {"detail": "No UserIncident matches the given query."}}
+            )
+        }
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)

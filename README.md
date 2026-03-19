@@ -46,11 +46,13 @@ venv\Scripts\Activate.ps1
 
 ## 3. Set Environment Variables
 
+Replace [your_app_id] and [your_app_key] with the respective id/key provided in the technical report (submitted via Minerva).
+
 ### macOS (zsh)
 Edit your `~/.zshrc`:
 ```bash
-export TFL_APP_ID="tfl_updates"
-export TFL_APP_KEY="d13a8b0bd12b424db0d44d2b76053659"
+export TFL_APP_ID="your_app_id"
+export TFL_APP_KEY="your_app_key"
 ```
 Reload:
 ```bash
@@ -60,8 +62,8 @@ source ~/.zshrc
 ### Linux (bash)
 Edit your `~/.bashrc`:
 ```bash
-export TFL_APP_ID="tfl_updates"
-export TFL_APP_KEY="d13a8b0bd12b424db0d44d2b76053659"
+export TFL_APP_ID="your_app_id"
+export TFL_APP_KEY="your_app_key"
 ```
 Reload:
 ```bash
@@ -70,8 +72,8 @@ source ~/.bashrc
 
 ### Windows (PowerShell)
 ```powershell
-setx TFL_APP_ID "tfl_updates"
-setx TFL_APP_KEY "d13a8b0bd12b424db0d44d2b76053659"
+setx TFL_APP_ID "your_app_id"
+setx TFL_APP_KEY "your_app_key"
 ```
 
 Restart PowerShell afterwards so the variables load.

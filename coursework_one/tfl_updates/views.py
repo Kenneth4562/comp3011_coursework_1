@@ -261,6 +261,14 @@ class UserStationListCreateView(generics.ListCreateAPIView):
                         "stop": "Farringdon (HUBZFD)"
                     }
                 }
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                examples={
+                    "application/json": {
+                        "stop": "Stop ID does not exist."
+                    }
+                }
             )
         }
     )
